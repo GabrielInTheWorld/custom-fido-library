@@ -8,12 +8,15 @@ import {
   CredentialLike,
   PublicKeyCredentialCreationOptions,
   PublicKeyCredentials,
+  PublicKeyObject,
   RegisterOptions,
   CredentialLikeLogin,
   AssertionExpectations
 } from '../lib/definitions';
 import { FidoHelper } from '../lib/fido-helper';
 import { FidoValidator } from '../lib/fido-validator';
+
+export { PublicKeyObject, AttestationExpectations, AssertionExpectations, CredentialLikeLogin };
 
 export class FidoService {
   public static getRegisterOptions(args: RegisterOptions): PublicKeyCredentialCreationOptions {

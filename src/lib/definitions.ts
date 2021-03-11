@@ -50,10 +50,9 @@ export interface CredentialLikeLogin extends PartialCredentialLike {
 
 export interface PublicKeyObject {
   publicKeyPem: string;
-  publicKeyObject: string;
   credentialId: string;
   publicKeyBytes: string;
-  x5c: string;
+  counter: number;
 }
 
 export interface MakeCredentialResponse {
