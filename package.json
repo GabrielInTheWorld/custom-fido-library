@@ -21,6 +21,7 @@
 	"homepage": "https://github.com/GabrielInTheWorld/custom-fido-library#readme",
 	"dependencies": {
 		"base-coding": "^1.0.3",
+		"bignumber.js": "^9.0.1",
 		"cbor": "^7.0.3",
 		"jwk-to-pem": "^2.0.4",
 		"ts-node": "^9.1.1",

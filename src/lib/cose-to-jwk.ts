@@ -8,6 +8,85 @@
 import cbor from 'cbor';
 
 export namespace Cose {
+  export function coseToJwk(cose: any): any {
+    if (typeof cose !== 'object') {
+      throw new TypeError("'cose' argument must be an object, probably an Buffer containing valid COSE");
+    }
+
+    // convert Uint8Array, etc. to ArrayBuffer
+    if (cose.buffer instanceof ArrayBuffer && !(cose instanceof Buffer)) {
+      cose = cose.buffer;
+    }
+
+    if (Array.isArray(cose)) {
+      cose = Buffer.from(cose);
+    }
+
+    // convert ArrayBuffer to Buffer
+    if (cose instanceof ArrayBuffer) {
+      cose = Buffer.from(new Uint8Array(cose));
+    }
+
+    if (!(cose instanceof Buffer)) {
+      throw new TypeError("could not convert 'cose' argument to a Buffer");
+    }
+
+    if (cose.length < 3) {
+      throw new RangeError(`COSE buffer was too short: ${cose.length}`);
+    }
+
+    let parsedCose;
+    try {
+      parsedCose = cbor.decodeAllSync(Buffer.from(cose));
+    } catch (err) {
+      throw new Error(`couldn\'t parse authenticator.authData.attestationData CBOR: ${err}`);
+    }
+    if (!Array.isArray(parsedCose) || !(parsedCose[0] instanceof Map)) {
+      throw new Error('invalid parsing of authenticator.authData.attestationData CBOR');
+    }
+    const coseMap = parsedCose[0];
+
+    const extraMap = new Map();
+
+    const retKey: any = {};
+
+    // parse main COSE labels
+    coseMap.forEach((rawValue, rawKey) => {
+      const key = rawKey.toString();
+      let value = rawValue.toString();
+      if (!coseLabels[key]) {
+        extraMap.set(rawKey, rawValue);
+        return;
+      }
+      const name = coseLabels[key].name;
+      if (coseLabels[key].values[value]) {
+        value = coseLabels[key].values[value];
+      }
+      retKey[name] = value;
+    });
+
+    const keyParams = keyParamList[retKey.kty];
+
+    // parse key-specific parameters
+    extraMap.forEach((value, key) => {
+      key = key.toString();
+
+      if (!keyParams[key]) {
+        throw new Error(`unknown COSE key label: ${retKey.kty} ${key}`);
+      }
+      const name = keyParams[key].name;
+      if (keyParams[key].values) {
+        value = keyParams[key].values[value.toString()];
+      }
+      if (value instanceof Buffer) {
+        value = value.toString('base64');
+      }
+      retKey[name] = value;
+    });
+
+    return retKey;
+  }
+
   interface CoseValues {
     [key: string]: string;
   }
@@ -57,38 +136,6 @@ export namespace Cose {
       values: {}
     }
   };
-
-  const algHashes: any = {
-    ECDSA_w_SHA256: 'SHA256',
-    // EdDSA: ""
-    ECDSA_w_SHA384: 'SHA384',
-    ECDSA_w_SHA512: 'SHA512',
-    'RSASSA-PKCS1-v1_5_w_SHA256': 'SHA256',
-    'RSASSA-PKCS1-v1_5_w_SHA384': 'SHA384',
-    'RSASSA-PKCS1-v1_5_w_SHA512': 'SHA512',
-    'RSASSA-PKCS1-v1_5_w_SHA1': 'SHA1'
-  };
-
-  function algToStr(alg: number): string {
-    if (typeof alg !== 'number') {
-      throw new TypeError(`expected \'alg\' to be a number, got: ${alg}`);
-    }
-
-    const algValues: CoseValues = coseLabels['3'].values;
-    return algValues[alg];
-  }
-
-  function algToHashStr(alg: number | string): string {
-    if (typeof alg === 'number') {
-      alg = algToStr(alg);
-    }
-
-    if (typeof alg !== 'string') {
-      throw new Error("'alg' is not a string or a valid COSE algorithm number");
-    }
-
-    return algHashes[alg];
-  }
 
   // key-specific parameters
   const keyParamList: any = {
@@ -173,89 +220,4 @@ export namespace Cose {
       }
     }
   };
-
-  export function coseToJwk(cose: any): any {
-    if (typeof cose !== 'object') {
-      throw new TypeError("'cose' argument must be an object, probably an Buffer containing valid COSE");
-    }
-
-    // convert Uint8Array, etc. to ArrayBuffer
-    if (cose.buffer instanceof ArrayBuffer && !(cose instanceof Buffer)) {
-      cose = cose.buffer;
-    }
-
-    if (Array.isArray(cose)) {
-      cose = Buffer.from(cose);
-    }
-
-    // convert ArrayBuffer to Buffer
-    if (cose instanceof ArrayBuffer) {
-      cose = Buffer.from(new Uint8Array(cose));
-    }
-
-    if (!(cose instanceof Buffer)) {
-      throw new TypeError("could not convert 'cose' argument to a Buffer");
-    }
-
-    if (cose.length < 3) {
-      throw new RangeError(`COSE buffer was too short: ${cose.length}`);
-    }
-
-    let parsedCose;
-    try {
-      parsedCose = cbor.decodeAllSync(Buffer.from(cose));
-    } catch (err) {
-      throw new Error(`couldn\'t parse authenticator.authData.attestationData CBOR: ${err}`);
-    }
-    if (!Array.isArray(parsedCose) || !(parsedCose[0] instanceof Map)) {
-      throw new Error('invalid parsing of authenticator.authData.attestationData CBOR');
-    }
-    const coseMap = parsedCose[0];
-
-    const extraMap = new Map();
-
-    const retKey: any = {};
-
-    // parse main COSE labels
-    for (const kv of coseMap) {
-      const key = kv[0].toString();
-      let value = kv[1].toString();
-
-      if (!coseLabels[key]) {
-        extraMap.set(kv[0], kv[1]);
-        continue;
-      }
-
-      const name = coseLabels[key].name;
-      if (coseLabels[key].values[value]) {
-        value = coseLabels[key].values[value];
-      }
-      retKey[name] = value;
-    }
-
-    const keyParams = keyParamList[retKey.kty];
-
-    // parse key-specific parameters
-    for (const kv of extraMap) {
-      const key = kv[0].toString();
-      let value = kv[1];
-
-      if (!keyParams[key]) {
-        throw new Error(`unknown COSE key label: ${retKey.kty} ${key}`);
-      }
-      const name = keyParams[key].name;
-
-      if (keyParams[key].values) {
-        value = keyParams[key].values[value.toString()];
-      }
-
-      if (value instanceof Buffer) {
-        value = value.toString('base64');
-      }
-
-      retKey[name] = value;
-    }
-
-    return retKey;
-  }
 }
