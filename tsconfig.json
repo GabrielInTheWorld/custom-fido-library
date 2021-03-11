@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"strict": true,
+		"declaration": true,
+		"baseUrl": "./",
+		"rootDir": "src",
+		"outDir": "dist",
+		"target": "ES5",
+		"lib": ["ES2017", "ES7", "ES6", "DOM"],
+		"esModuleInterop": true,
+		"importHelpers": true,
+		"strictPropertyInitialization": false,
+		"types": ["node"],
+		"typeRoots": ["node_modules/@types"]
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["dist", "node_modules"]
+}
