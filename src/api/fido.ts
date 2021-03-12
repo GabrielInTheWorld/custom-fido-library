@@ -3,6 +3,7 @@ import jwkToPem from 'jwk-to-pem';
 
 import {
   AuthenticationData,
+  AuthenticatorAttachment,
   AttestationExpectations,
   ClientData,
   CredentialLike,
@@ -16,7 +17,13 @@ import {
 import { FidoHelper } from '../lib/fido-helper';
 import { FidoValidator } from '../lib/fido-validator';
 
-export { PublicKeyObject, AttestationExpectations, AssertionExpectations, CredentialLikeLogin };
+export {
+  PublicKeyObject,
+  AttestationExpectations,
+  AssertionExpectations,
+  CredentialLikeLogin,
+  AuthenticatorAttachment
+};
 
 export class FidoService {
   public static getRegisterOptions(args: RegisterOptions): PublicKeyCredentialCreationOptions {

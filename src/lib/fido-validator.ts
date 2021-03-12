@@ -10,7 +10,7 @@ export namespace FidoValidator {
 
   function validateType(clientData: any, type: WebAuthnType): void {
     if (clientData.type !== type) {
-      throw new Error(`Wrong type of webauthn! Expected 'webauthn.create' - Received ${clientData.type}`);
+      throw new Error(`Wrong type of webauthn! Expected ${type} - Received ${clientData.type}`);
     }
   }
 

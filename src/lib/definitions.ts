@@ -24,7 +24,7 @@ export interface RegisterOptions {
   userId?: string;
   rpName?: string;
   username: string;
-  authenticatorAttachment: authenticatorAttachment;
+  authenticatorAttachment: AuthenticatorAttachment;
 }
 
 export interface CredentialLike extends PartialCredentialLike {
@@ -104,7 +104,7 @@ export interface ClientData {
 
 export type WebAuthnType = 'webauthn.create' | 'webauthn.get';
 
-type authenticatorAttachment = 'cross-platform' | 'platform';
+export type AuthenticatorAttachment = 'cross-platform' | 'platform';
 
 interface PublicKeyCredentialRpEntity {
   id?: string;
