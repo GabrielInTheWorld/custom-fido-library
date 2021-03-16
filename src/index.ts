@@ -1,1 +1,1 @@
-export * from "./api/fido";
+export * from './api';

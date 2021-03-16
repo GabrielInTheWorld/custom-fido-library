@@ -25,6 +25,7 @@ export interface RegisterOptions {
   rpName?: string;
   username: string;
   authenticatorAttachment: AuthenticatorAttachment;
+  publicKeyAlgs?: PublicKeyAlg[];
 }
 
 export interface CredentialLike extends PartialCredentialLike {
@@ -67,7 +68,7 @@ export interface MakeCredentialResponse {
 export interface PublicKeyCredentialCreationOptions {
   rp: PublicKeyCredentialRpEntity;
   user: PublicKeyCredentialUserEntity;
-  challenge: BufferSource | string;
+  challenge: string;
   pubKeyCredParams: PublicKeyCredentialParameters[];
   timeout?: number;
   excludeCredentials?: PublicKeycredentialDescriptor[];
@@ -83,17 +84,12 @@ export interface PublicKeyCredentials {
   counter: number;
 }
 
-export interface AssertionExpectations {
-  challenge: string;
-  origin: string;
+export interface AssertionExpectations extends Expectations {
   publicKeyPem: string;
   counter: number;
 }
 
-export interface AttestationExpectations {
-  challenge: string;
-  origin: string;
-}
+export interface AttestationExpectations extends Expectations {}
 
 export interface ClientData {
   type: WebAuthnType;
@@ -102,9 +98,16 @@ export interface ClientData {
   crossOrigin: boolean;
 }
 
+export type PublicKeyAlg = -7 | -35 | -36 | -257 | -258 | -259 | -37 | -38 | -39 | -8;
+
 export type WebAuthnType = 'webauthn.create' | 'webauthn.get';
 
 export type AuthenticatorAttachment = 'cross-platform' | 'platform';
+
+interface Expectations {
+  origin: string | string[];
+  challenge: string;
+}
 
 interface PublicKeyCredentialRpEntity {
   id?: string;

@@ -3,30 +3,22 @@ import jwkToPem from 'jwk-to-pem';
 
 import {
   AuthenticationData,
-  AuthenticatorAttachment,
   AttestationExpectations,
   ClientData,
   CredentialLike,
   PublicKeyCredentialCreationOptions,
   PublicKeyCredentials,
-  PublicKeyObject,
   RegisterOptions,
   CredentialLikeLogin,
-  AssertionExpectations
+  AssertionExpectations,
+  PublicKeyAlg
 } from '../lib/definitions';
 import { FidoHelper } from '../lib/fido-helper';
 import { FidoValidator } from '../lib/fido-validator';
 
-export {
-  PublicKeyObject,
-  AttestationExpectations,
-  AssertionExpectations,
-  CredentialLikeLogin,
-  AuthenticatorAttachment
-};
-
 export class FidoService {
   public static getRegisterOptions(args: RegisterOptions): PublicKeyCredentialCreationOptions {
+    const publicKeyAlgs: PublicKeyAlg[] = args.publicKeyAlgs || [-7]; // -7 => 'ES256', -257 => 'RS256'
     return {
       challenge: FidoHelper.createChallenge(),
       rp: {
@@ -42,12 +34,12 @@ export class FidoService {
       extensions: {
         txAuthSimple: ''
       },
-      pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+      pubKeyCredParams: publicKeyAlgs.map(alg => ({ alg, type: 'public-key' })),
       authenticatorSelection: {
         residentKey: 'discouraged',
         requireResidentKey: false,
         authenticatorAttachment: args.authenticatorAttachment,
-        userVerification: 'discouraged'
+        userVerification: 'preferred'
       },
       timeout: 60000,
       attestation: 'direct'
