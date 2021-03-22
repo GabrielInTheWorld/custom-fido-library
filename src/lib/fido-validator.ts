@@ -29,7 +29,7 @@ export namespace FidoValidator {
       throw new Error(
         `Origins are different! Expected one of ${expectations.origin.join(', ')} - Received ${clientData.origin}`
       );
-    } else if (clientData.origin !== expectations.origin) {
+    } else if (!Array.isArray(expectations.origin) && clientData.origin !== expectations.origin) {
       throw new Error(`Origins are different! Expected ${expectations.origin} - Received ${clientData.origin}`);
     }
   }
